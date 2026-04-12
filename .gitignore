@@ -1,0 +1,8 @@
+target/
+Cargo.lock
+*.pkg
+*.exe
+*.dll
+*.so
+*.dylib
+.env
