@@ -1,5 +1,9 @@
 # crontinel - Crontinel API Client for Rust
 
+Report cron and background job runs to [Crontinel Cloud](https://app.crontinel.com).
+
+## Quickstart
+
 ```toml
 [dependencies]
 crontinel = "0.1"
@@ -9,6 +13,17 @@ crontinel = "0.1"
 use crontinel::Crontinel;
 
 let client = Crontinel::new("your_api_key");
+client.set_base_url("https://app.crontinel.com/api/v1");
+
+// Report a cron run
+client.schedule_run("php artisan schedule:run", Some(1500), 0).unwrap();
+```
+
+Get your API key at [app.crontinel.com](https://app.crontinel.com).
+
+## Usage
+
+```rust
 
 // Report a scheduled command
 client.schedule_run("php artisan schedule:run", Some(1500), 0).unwrap();
