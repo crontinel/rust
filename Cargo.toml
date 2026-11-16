@@ -6,7 +6,7 @@ description = "Crontinel API client for Rust"
 license = "MIT"
 repository = "https://github.com/crontinel/rust"
 keywords = ["crontinel", "cron", "monitoring", "laravel"]
-categories = ["network", "web-programming"]
+categories = ["network-programming", "web-programming"]
 
 [dependencies]
 reqwest = { version = "0.12", features = ["json", "blocking"] }
