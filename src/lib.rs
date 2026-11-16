@@ -27,7 +27,7 @@ impl Crontinel {
             "command": command,
             "duration_ms": duration_ms,
             "exit_code": exit_code,
-            "ran_at": unix_now(),
+            "ran_at": now_rfc3339(),
             "app": self.app_name,
         }))
     }
@@ -38,7 +38,7 @@ impl Crontinel {
             "processed": processed,
             "failed": failed,
             "duration_ms": duration_ms,
-            "ran_at": unix_now(),
+            "ran_at": now_rfc3339(),
             "app": self.app_name,
         }))
     }
@@ -48,7 +48,7 @@ impl Crontinel {
             "supervisors": supervisors,
             "failed_jobs_per_minute": failed_jobs_per_minute,
             "paused": paused,
-            "ran_at": unix_now(),
+            "ran_at": now_rfc3339(),
             "app": self.app_name,
         }))
     }
@@ -59,7 +59,7 @@ impl Crontinel {
             "message": message,
             "state": state,
             "metadata": metadata.unwrap_or(json!({})),
-            "ran_at": unix_now(),
+            "ran_at": now_rfc3339(),
             "app": self.app_name,
         }))
     }
@@ -197,8 +197,24 @@ impl CrontinelBuilder {
     }
 }
 
-fn unix_now() -> i64 {
-    SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as i64
+/// Crontinel rejects a Unix number for `ran_at`; it needs an RFC 3339 date such as `2026-11-16T09:18:10Z`.
+fn now_rfc3339() -> String {
+    rfc3339(SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as i64)
+}
+
+fn rfc3339(secs: i64) -> String {
+    // Days since the epoch to a civil date (Howard Hinnant's algorithm), so no date crate is needed.
+    let (days, rem) = (secs.div_euclid(86_400), secs.rem_euclid(86_400));
+    let z = days + 719_468;
+    let era = z.div_euclid(146_097);
+    let doe = z - era * 146_097;
+    let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let day = doy - (153 * mp + 2) / 5 + 1;
+    let month = if mp < 10 { mp + 3 } else { mp - 9 };
+    let year = yoe + era * 400 + if month <= 2 { 1 } else { 0 };
+    format!("{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z", year, month, day, rem / 3600, rem % 3600 / 60, rem % 60)
 }
 
 #[cfg(test)]
@@ -277,6 +293,14 @@ mod tests {
         (url, port)
     }
 
+
+    #[test]
+    fn test_rfc3339_formats_known_instants() {
+        assert_eq!(rfc3339(0), "1970-01-01T00:00:00Z");
+        assert_eq!(rfc3339(951_782_400), "2000-02-29T00:00:00Z");
+        assert_eq!(rfc3339(1_794_820_690), "2026-11-16T09:18:10Z");
+        assert_eq!(rfc3339(4_107_542_399), "2100-02-28T23:59:59Z");
+    }
 
     #[test]
     fn test_requires_api_key() {

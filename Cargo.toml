@@ -1,10 +1,10 @@
 [package]
 name = "crontinel"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "Crontinel API client for Rust"
 license = "MIT"
-repository = "https://github.com/crontinel/crontinel"
+repository = "https://github.com/crontinel/rust"
 keywords = ["crontinel", "cron", "monitoring", "laravel"]
 categories = ["network", "web-programming"]
 
